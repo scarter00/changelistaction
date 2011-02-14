@@ -10,25 +10,23 @@ import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.List;
 
-/**
- * @author Igor Spasic
- */
 public class ChangelistToolbarAction extends AnAction {
 
 	@Override
 	public void actionPerformed(AnActionEvent anActionEvent) {
 		DataContext dataContext = anActionEvent.getDataContext();
 		Project project = DataKeys.PROJECT.getData(dataContext);
-		ChangelistActionComponent component =
-			project.getComponent(ChangelistActionComponent.class);
-		ChangeListManager changeListManager =
-			ChangeListManager.getInstance(project);
 
+		ChangelistActionComponent component =
+				project.getComponent(ChangelistActionComponent.class);
+
+		ChangeListManager changeListManager =
+				ChangeListManager.getInstance(project);
 
 //		Application application = ApplicationManager.getApplication();
 //		Module module = DataKeys.MODULE.getData(dataContext);
 
 		List<VirtualFile> changes = changeListManager.getAffectedFiles();
-		component.invokeAction(project, changes);
+		component.invokeAction(project, "allchanges", changes);
 	}
 }
