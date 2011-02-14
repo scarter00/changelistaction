@@ -1,0 +1,46 @@
+<idea-plugin version="3">
+	<name>Changelist Action</name>
+	<id>changelist-action</id>
+	<description>Invokes (external) user action on affected files from VCS changelist.</description>
+	<version>1.6</version>
+	<vendor email="igor.spasic@gmail.com" logo="/net/intellij/plugins/changelistaction/icon16.png">Igor Spasic</vendor>
+	<idea-version since-build="9566"/>
+	<change-notes><![CDATA[
+			<p>1.6</p>
+			<ul>
+				<li>added console window buttons</li>
+			</ul>
+			<p>1.5</p>
+			<ul>
+				<li>added console output</li>
+				<li>added new argument</li>
+			</ul>
+	]]>
+	</change-notes>
+
+	<application-components>
+	</application-components>
+
+	<project-components>
+		<component>
+			<implementation-class>
+				net.intellij.plugins.changelistaction.ChangelistActionComponent
+			</implementation-class>
+		</component>
+	</project-components>
+
+	<actions>
+		<action id="ChangelistAction"
+				class="net.intellij.plugins.changelistaction.ChangelistToolbarAction"
+				text="Invoke changelist action"
+				description="Invoke user action on VCS changelist."
+				icon="/net/intellij/plugins/changelistaction/icon16.png"			
+			>
+			<add-to-group group-id="ChangesViewToolbar" anchor="last"/>
+		</action>
+	</actions>
+
+	<extensions defaultExtensionNs="com.intellij">
+	</extensions>
+
+</idea-plugin>
