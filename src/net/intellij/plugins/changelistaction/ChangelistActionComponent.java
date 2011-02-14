@@ -7,6 +7,8 @@ import com.intellij.openapi.components.StorageScheme;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -24,14 +26,11 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-/**
- * @author Igor Spasic
- */
 @State(
-	name = ChangelistActionComponent.COMPONENT_NAME,
-	storages = {
-		@Storage(id = "changelist-action-default", file = "$PROJECT_FILE$"),
-		@Storage(id = "changelist-action-dir", file = "$PROJECT_CONFIG_DIR$/changelist-action.xml", scheme = StorageScheme.DIRECTORY_BASED)})
+		name = ChangelistActionComponent.COMPONENT_NAME,
+		storages = {
+				@Storage(id = "changelist-action-default", file = "$PROJECT_FILE$"),
+				@Storage(id = "changelist-action-dir", file = "$PROJECT_CONFIG_DIR$/changelist-action.xml", scheme = StorageScheme.DIRECTORY_BASED)})
 
 public class ChangelistActionComponent implements Configurable, PersistentStateComponent<ChangelistActionComponent.State> {
 
@@ -39,27 +38,21 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 
 	private static final String MARKER_FILE = "%F";
 	private static final String MARKER_PRJ_ROOT = "%P";
+	private static final String MARKER_CHANGELIST_NAME = "%C";
 
 	public static final String COMPONENT_NAME = "VCS Changelist Action";
 
-	public void invokeAction(Project project, List<VirtualFile> changes) {
+	public void invokeAction(
+			Project project,
+			String changelistName,
+			List<VirtualFile> changes) {
 
 		String prjBaseDir = project.getBaseDir().getPath();
 
-		LinkedHashSet<String> allFiles = new LinkedHashSet<String>(changes.size());
+		final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
 
-		// iterate all and remove duplicates
-		for (VirtualFile vfile : changes) {
-			String path = vfile.getPath();
-			if (state.absolutePath == false) {
-				if (path.startsWith(prjBaseDir)) {
-					path = path.substring(prjBaseDir.length());
-				}
-			}
-			if (allFiles.contains(path) == false) {
-				allFiles.add(path);
-			}
-		}
+		LinkedHashSet<String> allFiles =
+				ChangelistUtil.createFilenames(changes, fileIndex, state.absolutePath);
 
 		// prepare list
 		String lineSeparator = System.getProperty("line.separator");
@@ -83,37 +76,42 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 
 		// invoke command
 		String command = state.command.trim();
-		if (command.length() != 0) {
-			int ndx = command.indexOf(MARKER_PRJ_ROOT);
-			if (ndx != -1) {
-				command = command.substring(0, ndx) + prjBaseDir +
-						command.substring(ndx + MARKER_PRJ_ROOT.length());
-			}
+		if (command.length() == 0) {
+			LOG.error("command is empty, do nothing");
+			return;
+		}
 
-			ndx = command.indexOf(MARKER_FILE);
-			if (ndx != -1) {
-				command =
-						command.substring(0, ndx) +
-						temp.getAbsolutePath() +
-						command.substring(ndx + MARKER_FILE.length());
-			}
+		command = replaceMarkerWithValue(command, MARKER_PRJ_ROOT, prjBaseDir);
+		command = replaceMarkerWithValue(command, MARKER_FILE, temp.getAbsolutePath());
+		command = replaceMarkerWithValue(
+				command, MARKER_CHANGELIST_NAME, ChangelistUtil.createFilenameFromChangelistName(changelistName));
 
-			if (state.consoleOutput) {
-				CmdExecutor.execute(command, project);
-			} else {
-				try {
-					Runtime runtime = Runtime.getRuntime();
-					runtime.exec(command);
-				}
-				catch (IOException ioex) {
-					LOG.error("Error invoking command.", ioex);
-				}
+		if (state.consoleOutput) {
+			CmdExecutor.execute(command, project);
+		} else {
+			try {
+				Runtime runtime = Runtime.getRuntime();
+				runtime.exec(command);
+			} catch (IOException ioex) {
+				LOG.error("Error invoking command.", ioex);
 			}
 		}
 	}
 
+	/**
+	 * Returns command with marker replaced by value.
+	 */
+	private String replaceMarkerWithValue(String command, String marker, String value) {
+		int ndx = command.indexOf(marker);
+		if (ndx != -1) {
+			command = command.substring(0, ndx) + value +
+					command.substring(ndx + MARKER_PRJ_ROOT.length());
+		}
+		return command;
+	}
 
-// ---------------------------------------------------------------- configurable
+
+	// ---------------------------------------------------------------- configurable
 
 	private ChangelistActionConfiguration configurationComponent;
 	private Icon pluginIcon;
