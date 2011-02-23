@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vcs.VcsDataKeys;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vcs.changes.ChangeList;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -19,10 +20,19 @@ public class SelectedChangelistPopupAction extends AnAction {
 		DataContext dataContext = e.getDataContext();
 
 		Project project = DataKeys.PROJECT.getData(dataContext);
+		if (project == null) {
+			return;
+		}
+
 		ChangelistActionComponent clActionComponennt =
 				project.getComponent(ChangelistActionComponent.class);
 
-		for (ChangeList iChangeList : getSelectedChangelists(dataContext)) {
+		ChangeList[] selectedChangeLists = e.getData(VcsDataKeys.CHANGE_LISTS);
+		if (selectedChangeLists == null) {
+			return;
+		}
+
+		for (ChangeList iChangeList : selectedChangeLists) {
 			String changelistName = iChangeList.getName();
 			List<Change> changes = new ArrayList<Change>(iChangeList.getChanges());
 
@@ -31,12 +41,7 @@ public class SelectedChangelistPopupAction extends AnAction {
 				changeFiles.add(change.getVirtualFile());
 			}
 			clActionComponennt.invokeAction(project, changelistName, changeFiles);
-			// TODO: force opening the console (depending on flag)?
+			// TODO: force opening the console (depending on a flag)?
 		}
-	}
-
-	private ChangeList[] getSelectedChangelists(DataContext dataContext) {
-		// TODO:STO deprecated, but what's the new mechanism?
-		return DataKeys.CHANGE_LISTS.getData(dataContext);
 	}
 }

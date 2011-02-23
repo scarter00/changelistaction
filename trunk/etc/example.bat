@@ -1,1 +1,1 @@
-echo %1 %2
+@echo this is a change list action: %1 %2
