@@ -1,11 +1,17 @@
-<idea-plugin version="3">
+<idea-plugin version="4">
 	<name>Changelist Action</name>
 	<id>changelist-action</id>
 	<description>Invokes (external) user action on affected files from VCS changelist.</description>
-	<version>1.6</version>
+	<version>1.7</version>
 	<vendor email="igor.spasic@gmail.com" logo="/net/intellij/plugins/changelistaction/icon16.png">Igor Spasic</vendor>
 	<idea-version since-build="9566"/>
 	<change-notes><![CDATA[
+			<p>1.7</p>
+			<ul>
+				<li>changelist action now can be invoked only on selected changelist(s)</li>
+				<li>additional argument added</li>
+				<li>code available on googlecode now</li>
+			</ul>
 			<p>1.6</p>
 			<ul>
 				<li>added console window buttons</li>
