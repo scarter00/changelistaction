@@ -24,7 +24,7 @@ public class SelectedChangelistPopupAction extends AnAction {
 			return;
 		}
 
-		ChangelistActionComponent clActionComponennt = project.getComponent(ChangelistActionComponent.class);
+		ChangelistActionComponent clActionComponent = project.getComponent(ChangelistActionComponent.class);
 
 		ChangeList[] selectedChangeLists = e.getData(VcsDataKeys.CHANGE_LISTS);
 		if (selectedChangeLists == null) {
@@ -39,7 +39,7 @@ public class SelectedChangelistPopupAction extends AnAction {
 			for (Change change : changes) {
 				changeFiles.add(change.getVirtualFile());
 			}
-			clActionComponennt.invokeAction(project, changelistName, changeFiles);
+			clActionComponent.invokeAction(project, changelistName, changeFiles);
 			// TODO: force opening the console (depending on a flag)?
 		}
 	}
