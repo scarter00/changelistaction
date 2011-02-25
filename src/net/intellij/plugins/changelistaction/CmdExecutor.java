@@ -1,7 +1,7 @@
 package net.intellij.plugins.changelistaction;
 
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -16,71 +16,82 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.util.concurrency.SwingWorker;
 import org.apache.log4j.Logger;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JToolBar;
-import javax.swing.border.Border;
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
 
 public class CmdExecutor {
 
 	private static final Logger LOG = Logger.getLogger(CmdExecutor.class);
 
+	private static final String ID = "Changelist Action Console";
+
 	private static ToolWindow toolWindow;
 
-	private static ConsoleView view;
+	private static ConsoleView consoleView;
 
-	private static String id = "Changelist Action Console";
+	private static String lastCommand;
+	private static boolean lastInBackground;
 
 	/**
-	 * Executes command and show it in the console.
+	 * Returns console view. Makes sure its never <code>null</code>.
 	 */
-	public static int execute(String command, Project project) {
+	private static ConsoleView getConsoleView(Project project) {
+		if (consoleView == null) {
+			TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
+			consoleView = builder.getConsole();
+		}
+		return consoleView;
+	}
+
+	// ---------------------------------------------------------------- execution
+
+	/**
+	 * Executes command and shows it in the console.
+	 */
+	public static void execute(final Project project, final String command, boolean inBackground) {
+
+		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+		toolWindow = toolWindowManager.getToolWindow(ID);
+
+		if (toolWindow == null) {
+			toolWindow = createToolWindow(toolWindowManager, project);
+		}
+
+		lastCommand = command;
+		lastInBackground = inBackground;
+
+		if (inBackground) {
+			LOG.info("Invoking command in background: " + command);
+			SwingWorker worker = new SwingWorker() {
+				@Override
+				public Object construct() {
+					executeCommand(command, project);
+					return null;
+				}
+			};
+			worker.start();
+		} else {
+			LOG.info("Invoking command: " + command);
+			executeCommand(command, project);
+		}
+	}
+
+	private static int executeCommand(String command, Project project) {
+
 		try {
 			Runtime rt = Runtime.getRuntime();
-			LOG.info("Invoking " + command);
+
 			Process proc = rt.exec(command);
 
 			if (project != null) {
-				if (view == null) {
-					TextConsoleBuilder builder =
-							TextConsoleBuilderFactory.getInstance()
-									.createBuilder(project);
-					view = builder.getConsole();
-				}
-
 				OSProcessHandler handler = new OSProcessHandler(proc, command);
-				view.attachToProcess(handler);
+				getConsoleView(project).attachToProcess(handler);
 				handler.startNotify();
-
-				ToolWindowManager manager =
-						ToolWindowManager.getInstance(project);
-
-				toolWindow = manager.getToolWindow(id);
-
-				if (toolWindow == null) {
-					toolWindow = createToolWindow(manager, command, project);
-				}
 			}
-
-/*
-            // any error message?
-            StreamGobbler errorGobbler = new
-                    StreamGobbler(proc.getErrorStream(), "ERROR");
-
-            // any output?
-            StreamGobbler outputGobbler = new
-                    StreamGobbler(proc.getInputStream(), "OUTPUT");
-
-            // kick them off
-            errorGobbler.run();
-            String out = outputGobbler.run();
-*/
 
 			// any error???
 			int exitValue = proc.waitFor();
@@ -88,26 +99,26 @@ public class CmdExecutor {
 			return exitValue;
 		}
 		catch (Exception ex) {
-			LOG.debug("Error executing command.", ex);
+			LOG.warn("Error executing command.", ex);
 		}
 		return 0;
 	}
 
+	// ---------------------------------------------------------------- tool window
+
 	/**
 	 * Creates tool window.
 	 */
-	private static ToolWindow createToolWindow(
-		final ToolWindowManager toolWindowManager, final String command,
-		final Project project) {
+	private static ToolWindow createToolWindow(final ToolWindowManager toolWindowManager, final Project project) {
 
 		DefaultActionGroup actionGroup = new DefaultActionGroup();
-		actionGroup.add(new AnAction("Invoke changelist action",
+		actionGroup.add(new AnAction("Repeat last changelist action",
 			"Invoke preivous user action on VCS changelist.",
 			IconLoader.getIcon
 			("/net/intellij/plugins/changelistaction/icon16.png")) {
 			@Override
 			public void actionPerformed(AnActionEvent anActionEvent) {
-				execute(command, project);
+				execute(project, lastCommand, lastInBackground);
 			}
 		});
 		actionGroup.add(new AnAction("Clear console",
@@ -116,7 +127,7 @@ public class CmdExecutor {
 			("/net/intellij/plugins/changelistaction/clear.png")) {
 			@Override
 			public void actionPerformed(AnActionEvent anActionEvent) {
-				view.clear();
+				getConsoleView(project).clear();
 			}
 		});
 		actionGroup.add(new AnAction("Close",
@@ -124,8 +135,8 @@ public class CmdExecutor {
 			IconLoader.getIcon("/actions/cancel.png")) {
 			@Override
 			public void actionPerformed(AnActionEvent anActionEvent) {
-				view.clear();
-				toolWindowManager.unregisterToolWindow(id);
+				getConsoleView(project).clear();
+				toolWindowManager.unregisterToolWindow(ID);
 			}
 		});
 
@@ -136,7 +147,7 @@ public class CmdExecutor {
 		panel.add(toolbar, BorderLayout.WEST);
 
 		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-		Content content = contentFactory.createContent(view.getComponent(), "", false);
+		Content content = contentFactory.createContent(getConsoleView(project).getComponent(), "", false);
 
 		panel.add(content.getComponent(), BorderLayout.CENTER);
 
@@ -152,11 +163,9 @@ public class CmdExecutor {
 		return window;
 	}
 
-	private static ToolWindow registerToolWindow(
-		final ToolWindowManager
-			toolWindowManager, final JPanel panel) {
+	private static ToolWindow registerToolWindow(final ToolWindowManager toolWindowManager, final JPanel panel) {
 
-		final ToolWindow window = toolWindowManager.registerToolWindow(id, true, ToolWindowAnchor.BOTTOM);
+		final ToolWindow window = toolWindowManager.registerToolWindow(ID, true, ToolWindowAnchor.BOTTOM);
 		final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
 		final Content content = contentFactory.createContent(panel, "", false);
 

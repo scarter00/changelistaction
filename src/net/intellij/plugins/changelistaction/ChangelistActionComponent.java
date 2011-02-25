@@ -77,7 +77,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 				ChangelistUtil.createFilenameFromChangelistName(changelistName));
 
 		if (state.consoleOutput) {
-			CmdExecutor.execute(command, project);
+			CmdExecutor.execute(project, command, state.executeInBackground);
 		} else {
 			try {
 				Runtime runtime = Runtime.getRuntime();
@@ -183,6 +183,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 		public String command = "";
 		public int pathType;
 		public boolean consoleOutput;
+		public boolean executeInBackground;
 	}
 
 	private final State state = new State();
