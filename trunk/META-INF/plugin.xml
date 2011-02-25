@@ -13,16 +13,19 @@
 	        	<li>Added 3 filename path types: absolute, relative from context root and from project root.</li>
 	        	<li>Fixed a bug.</li>
 	        </ul>
+
 			<p>1.7</p>
 			<ul>
 				<li>changelist action now can be invoked only on selected changelist(s)</li>
 				<li>additional argument added</li>
 				<li>code available on googlecode now</li>
 			</ul>
+
 			<p>1.6</p>
 			<ul>
 				<li>added console window buttons</li>
 			</ul>
+
 			<p>1.5</p>
 			<ul>
 				<li>added console output</li>
