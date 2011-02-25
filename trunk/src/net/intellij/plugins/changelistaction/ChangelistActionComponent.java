@@ -7,8 +7,6 @@ import com.intellij.openapi.components.StorageScheme;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -44,11 +42,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 
 	public void invokeAction(Project project, String changelistName, List<VirtualFile> changes) {
 
-		String prjBaseDir = project.getBaseDir().getPath();
-
-		final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-
-		LinkedHashSet<String> allFiles = ChangelistUtil.createFilenames(changes, fileIndex, state.absolutePath);
+		LinkedHashSet<String> allFiles = ChangelistUtil.createFilenames(changes, project, state);
 
 		// prepare list
 		String lineSeparator = System.getProperty("line.separator");
@@ -77,7 +71,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 			return;
 		}
 
-		command = replaceMarkerWithValue(command, MARKER_PRJ_ROOT, prjBaseDir);
+		command = replaceMarkerWithValue(command, MARKER_PRJ_ROOT, project.getBaseDir().getPath());
 		command = replaceMarkerWithValue(command, MARKER_FILE, temp.getAbsolutePath());
 		command = replaceMarkerWithValue(command, MARKER_CHANGELIST_NAME,
 				ChangelistUtil.createFilenameFromChangelistName(changelistName));

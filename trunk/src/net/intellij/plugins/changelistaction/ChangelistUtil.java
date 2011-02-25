@@ -1,6 +1,8 @@
 package net.intellij.plugins.changelistaction;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.LinkedHashSet;
@@ -8,28 +10,32 @@ import java.util.List;
 
 public class ChangelistUtil {
 
+	private static final String vfsFileSepartor = "/";
+
 	/**
 	 * Creates a unique list of filenames from the given changelist files.
 	 *
-	 * @param absolutePath if this is false then the paths returned will
+	 * @param state.absolutePath if this is false then the paths returned will
 	 * be relative from their respective content root (as determined by the
 	 * <tt>fileIndex</tt>)
 	 */
 	public static LinkedHashSet<String> createFilenames(
 			List<VirtualFile> changedFiles,
-			ProjectFileIndex fileIndex,
-			boolean absolutePath) {
+			Project project,
+			ChangelistActionComponent.State state) {
+
+//		String prjBaseDir = project.getBaseDir().getPath();
+
+		final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
 
 		LinkedHashSet<String> allFiles = new LinkedHashSet<String>(changedFiles.size());
-
-		String vfsFileSepartor = "/";
 
 		for (VirtualFile changeFile : changedFiles) {
 			VirtualFile contentRootForFile = fileIndex.getContentRootForFile(changeFile);
 
 			String path = changeFile.getPath();
 
-			if (!absolutePath) {
+			if (!state.absolutePath) {
 				if (changeFile.getPath().startsWith(contentRootForFile.getPath())) {
 					path = path.substring(contentRootForFile.getPath().length());
 				}
