@@ -12,38 +12,50 @@ public class ChangelistUtil {
 
 	private static final String vfsFileSepartor = "/";
 
+	public static boolean isAbsolutePath(int pathType) {
+		return pathType == 0;
+	}
+
+	public static boolean isRelativePathFromContentRoot(int pathType) {
+		return pathType == 1;
+	}
+
+	public static boolean isRelativePathFromProjectRoot(int pathType) {
+		return pathType == 2;
+	}
+
 	/**
 	 * Creates a unique list of filenames from the given changelist files.
-	 *
-	 * @param state.absolutePath if this is false then the paths returned will
-	 * be relative from their respective content root (as determined by the
-	 * <tt>fileIndex</tt>)
 	 */
-	public static LinkedHashSet<String> createFilenames(
-			List<VirtualFile> changedFiles,
-			Project project,
-			ChangelistActionComponent.State state) {
+	public static LinkedHashSet<String> createFilenames(List<VirtualFile> changedFiles, Project project, int pathType) {
 
-//		String prjBaseDir = project.getBaseDir().getPath();
+		String prjBaseDir = project.getBaseDir().getPath();
 
 		final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
 
 		LinkedHashSet<String> allFiles = new LinkedHashSet<String>(changedFiles.size());
 
 		for (VirtualFile changeFile : changedFiles) {
-			VirtualFile contentRootForFile = fileIndex.getContentRootForFile(changeFile);
 
 			String path = changeFile.getPath();
 
-			if (!state.absolutePath) {
-				if (changeFile.getPath().startsWith(contentRootForFile.getPath())) {
-					path = path.substring(contentRootForFile.getPath().length());
+			if (!isAbsolutePath(pathType)) {
+
+				String relativePrefix;
+				if (isRelativePathFromProjectRoot(pathType)) {
+					relativePrefix = prjBaseDir;
+				} else {
+					VirtualFile contentRootForFile = fileIndex.getContentRootForFile(changeFile);
+					relativePrefix = contentRootForFile.getPath();
+				}
+
+				if (changeFile.getPath().startsWith(relativePrefix)) {
+					path = path.substring(relativePrefix.length());
 				}
 
 				if (path.startsWith(vfsFileSepartor)) {
 					path = path.substring(vfsFileSepartor.length());
 				}
-
 			}
 
 			if (allFiles.contains(path) == false) {

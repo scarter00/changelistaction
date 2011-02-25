@@ -42,7 +42,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 
 	public void invokeAction(Project project, String changelistName, List<VirtualFile> changes) {
 
-		LinkedHashSet<String> allFiles = ChangelistUtil.createFilenames(changes, project, state);
+		LinkedHashSet<String> allFiles = ChangelistUtil.createFilenames(changes, project, state.pathType);
 
 		// prepare list
 		String lineSeparator = System.getProperty("line.separator");
@@ -181,7 +181,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 	 */
 	public static final class State {
 		public String command = "";
-		public boolean absolutePath;
+		public int pathType;
 		public boolean consoleOutput;
 	}
 
