@@ -13,6 +13,7 @@ public class ChangelistActionConfiguration {
 	private JRadioButton absolutePaths;
 	private JRadioButton relativePathContent;
 	private JRadioButton relativePathProject;
+	private JCheckBox executeInBackground;
 
 	public JPanel getPanel() {
 		return panel;
@@ -23,25 +24,35 @@ public class ChangelistActionConfiguration {
 	public void load(ChangelistActionComponent.State state) {
 		this.state = state;
 		command.setText(state.command);
-		switch (state.pathType) {
-			case 0: absolutePaths.setSelected(true); break;
-			case 1: relativePathContent.setSelected(true); break;
-			case 2: relativePathProject.setSelected(true); break;
-		}
+		setPathType(state.pathType);
 		consoleOutput.setSelected(state.consoleOutput);
+		executeInBackground.setSelected(state.executeInBackground);
 	}
 
 	public ChangelistActionComponent.State save() {
 		state.command = command.getText();
 		state.pathType = getPathType();
 		state.consoleOutput = consoleOutput.isSelected();
+		state.executeInBackground = executeInBackground.isSelected();
 		return state;
 	}
 
 	public boolean isModified() {
 		return !state.command.equals(command.getText()) ||
 			state.pathType != getPathType() ||
-			state.consoleOutput != consoleOutput.isSelected();
+			state.consoleOutput != consoleOutput.isSelected() ||
+			state.executeInBackground != executeInBackground.isSelected()
+		;
+	}
+
+	// ---------------------------------------------------------------- utils
+
+	private void setPathType(int pathType) {
+		switch (pathType) {
+			case 0: absolutePaths.setSelected(true); break;
+			case 1: relativePathContent.setSelected(true); break;
+			case 2: relativePathProject.setSelected(true); break;
+		}
 	}
 
 	private int getPathType() {

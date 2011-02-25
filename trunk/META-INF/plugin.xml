@@ -3,13 +3,15 @@
 	<name>Changelist Action</name>
 	<id>changelist-action</id>
 	<description>Invokes (external) user action on affected files from VCS changelist.</description>
-	<version>1.75</version>
+	<version>1.8</version>
 	<vendor email="igor.spasic@gmail.com" logo="/net/intellij/plugins/changelistaction/icon16.png">Igor Spasic</vendor>
 	<idea-version since-build="9566"/>
 	<change-notes><![CDATA[
-	        <p>1.75</p>
+	        <p>1.8</p>
 	        <ul>
+	        	<li>Added optional background execution.</li>
 	        	<li>Added 3 filename path types: absolute, relative from context root and from project root.</li>
+	        	<li>Fixed a bug.</li>
 	        </ul>
 			<p>1.7</p>
 			<ul>
