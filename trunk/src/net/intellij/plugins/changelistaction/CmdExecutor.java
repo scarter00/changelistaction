@@ -128,16 +128,15 @@ public class CmdExecutor {
 				toolWindowManager.unregisterToolWindow(id);
 			}
 		});
-		JComponent toolbar = ActionManager.getInstance().createActionToolbar
-			(ActionPlaces.UNKNOWN, actionGroup, false).getComponent();
 
+		ActionManager actionManager = ActionManager.getInstance();
+		JComponent toolbar = actionManager.createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, false).getComponent();
 
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.add(toolbar, BorderLayout.WEST);
 
 		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-		Content content =
-			contentFactory.createContent(view.getComponent(), "", false);
+		Content content = contentFactory.createContent(view.getComponent(), "", false);
 
 		panel.add(content.getComponent(), BorderLayout.CENTER);
 
@@ -157,21 +156,13 @@ public class CmdExecutor {
 		final ToolWindowManager
 			toolWindowManager, final JPanel panel) {
 
-		final ToolWindow window = toolWindowManager.registerToolWindow(
-			id,
-			true, ToolWindowAnchor.BOTTOM);
-		final ContentFactory contentFactory =
-			ContentFactory.SERVICE.getInstance();
-
+		final ToolWindow window = toolWindowManager.registerToolWindow(id, true, ToolWindowAnchor.BOTTOM);
+		final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
 		final Content content = contentFactory.createContent(panel, "", false);
 
 		content.setCloseable(false);
-
 		window.getContentManager().addContent(content);
-
-		window.setIcon(
-			IconLoader.getIcon(
-				"/net/intellij/plugins/changelistaction/icon16.png"));
+		window.setIcon(IconLoader.getIcon("/net/intellij/plugins/changelistaction/icon16.png"));
 
 		return window;
 	}

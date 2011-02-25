@@ -20,14 +20,12 @@ public class ChangelistUtil {
 			ProjectFileIndex fileIndex,
 			boolean absolutePath) {
 
-		LinkedHashSet<String> allFiles =
-				new LinkedHashSet<String>(changedFiles.size());
+		LinkedHashSet<String> allFiles = new LinkedHashSet<String>(changedFiles.size());
 
 		String vfsFileSepartor = "/";
 
 		for (VirtualFile changeFile : changedFiles) {
-			VirtualFile contentRootForFile =
-					fileIndex.getContentRootForFile(changeFile);
+			VirtualFile contentRootForFile = fileIndex.getContentRootForFile(changeFile);
 
 			String path = changeFile.getPath();
 

@@ -24,8 +24,7 @@ public class SelectedChangelistPopupAction extends AnAction {
 			return;
 		}
 
-		ChangelistActionComponent clActionComponennt =
-				project.getComponent(ChangelistActionComponent.class);
+		ChangelistActionComponent clActionComponennt = project.getComponent(ChangelistActionComponent.class);
 
 		ChangeList[] selectedChangeLists = e.getData(VcsDataKeys.CHANGE_LISTS);
 		if (selectedChangeLists == null) {
