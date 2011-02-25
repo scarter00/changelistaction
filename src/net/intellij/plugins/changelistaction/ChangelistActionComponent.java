@@ -42,17 +42,13 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 
 	public static final String COMPONENT_NAME = "VCS Changelist Action";
 
-	public void invokeAction(
-			Project project,
-			String changelistName,
-			List<VirtualFile> changes) {
+	public void invokeAction(Project project, String changelistName, List<VirtualFile> changes) {
 
 		String prjBaseDir = project.getBaseDir().getPath();
 
 		final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
 
-		LinkedHashSet<String> allFiles =
-				ChangelistUtil.createFilenames(changes, fileIndex, state.absolutePath);
+		LinkedHashSet<String> allFiles = ChangelistUtil.createFilenames(changes, fileIndex, state.absolutePath);
 
 		// prepare list
 		String lineSeparator = System.getProperty("line.separator");
@@ -61,7 +57,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 			sb.append(affectedFile).append(lineSeparator);
 		}
 
-		// write file list to temp file
+		// write file list to a temp file
 		File temp;
 		try {
 			temp = File.createTempFile("idea-", "-changes");
@@ -83,8 +79,8 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 
 		command = replaceMarkerWithValue(command, MARKER_PRJ_ROOT, prjBaseDir);
 		command = replaceMarkerWithValue(command, MARKER_FILE, temp.getAbsolutePath());
-		command = replaceMarkerWithValue(
-				command, MARKER_CHANGELIST_NAME, ChangelistUtil.createFilenameFromChangelistName(changelistName));
+		command = replaceMarkerWithValue(command, MARKER_CHANGELIST_NAME,
+				ChangelistUtil.createFilenameFromChangelistName(changelistName));
 
 		if (state.consoleOutput) {
 			CmdExecutor.execute(command, project);
@@ -104,8 +100,7 @@ public class ChangelistActionComponent implements Configurable, PersistentStateC
 	private String replaceMarkerWithValue(String command, String marker, String value) {
 		int ndx = command.indexOf(marker);
 		if (ndx != -1) {
-			command = command.substring(0, ndx) + value +
-					command.substring(ndx + MARKER_PRJ_ROOT.length());
+			command = command.substring(0, ndx) + value + command.substring(ndx + MARKER_PRJ_ROOT.length());
 		}
 		return command;
 	}
