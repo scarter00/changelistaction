@@ -37,6 +37,10 @@ public class ChangelistUtil {
 
 		for (VirtualFile changeFile : changedFiles) {
 
+			if (changeFile == null) {
+				continue;
+			}
+
 			String path = changeFile.getPath();
 
 			if (!isAbsolutePath(pathType)) {
